@@ -1,38 +1,5 @@
-import { error } from "console";
 import express from "express";
 import { IDataQR, IStatusQR } from "types/payment";
-
-export const getToken = async () => {
-  try {
-    const accountId = process.env.ACCOUNTID;
-    const authorizationId = process.env.AUTHORIZATIONID;
-
-    const dataBody = {
-      accountId,
-      authorizationId,
-    };
-
-    const url =
-      "http://test.bnb.com.bo/ClientAuthentication.API/api/v1/auth/token";
-
-    const response = await fetch(url, {
-      method: "POST",
-      mode: "cors",
-      cache: "no-cache",
-      credentials: "same-origin",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(dataBody),
-    });
-
-    const token = await response.json();
-    return token;
-  } catch (error) {
-    console.log(error);
-    return undefined;
-  }
-};
 
 export const getQR = async (req: express.Request, res: express.Response) => {
   try {
@@ -56,7 +23,7 @@ export const getQR = async (req: express.Request, res: express.Response) => {
       destinationAccountId: "1",
     };
 
-    const token = getToken();
+    const token = req.cookies["BNB-TOKEN"];
 
     const url =
       "http://test.bnb.com.bo/QRSimple.API/api/v1/main/getQRWithImageAsync";
@@ -111,11 +78,10 @@ export const statusQR = async (req: express.Request, res: express.Response) => {
     }
 
     const dataBody = {
-      qrId,
+      qrId: Number(qrId),
     };
 
-    const token = getToken();
-
+    const token = req.cookies["BNB-TOKEN"];
     const url =
       "http://test.bnb.com.bo/QRSimple.API/api/v1/main/getQRStatusAsync";
 
@@ -132,13 +98,13 @@ export const statusQR = async (req: express.Request, res: express.Response) => {
     });
 
     const dataQR: IStatusQR = await response.json();
-    const { statusId, success, message } = dataQR;
-
+    const { statusId, success, message, expirationDate } = dataQR;
     if (success) {
       const responseQR = {
         success: true,
         data: {
           statusId,
+          expirationDate,
         },
         message,
       };
@@ -155,5 +121,42 @@ export const statusQR = async (req: express.Request, res: express.Response) => {
     }
   } catch (error) {
     console.log(error);
+  }
+};
+
+export const getToken = async (req: express.Request, res: express.Response) => {
+  try {
+    const accountId = process.env.ACCOUNTID;
+    const authorizationId = process.env.AUTHORIZATIONID;
+
+    const dataBody = {
+      accountId,
+      authorizationId,
+    };
+
+    const url =
+      "http://test.bnb.com.bo/ClientAuthentication.API/api/v1/auth/token";
+
+    const response = await fetch(url, {
+      method: "POST",
+      mode: "cors",
+      cache: "no-cache",
+      credentials: "same-origin",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(dataBody),
+    });
+
+    const { message } = await response.json();
+    res.cookie("BNB-TOKEN", message, {
+      maxAge: 3600000,
+      httpOnly: true,
+    });
+
+    return res.status(200).end();
+  } catch (error) {
+    console.log(error);
+    return undefined;
   }
 };

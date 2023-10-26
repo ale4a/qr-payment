@@ -33,7 +33,7 @@ export const login = async (req: express.Request, res: express.Response) => {
 
     await user.save();
 
-    res.cookie("ANTONIO-AUTH", user.authentication.sessionToken, {
+    res.cookie("USERS-AUTH", user.authentication.sessionToken, {
       domain: "localhost",
       path: "/",
     });
@@ -48,7 +48,6 @@ export const login = async (req: express.Request, res: express.Response) => {
 export const register = async (req: express.Request, res: express.Response) => {
   try {
     const { email, password, username } = req.body;
-    console.log(req.body);
     if (!email || !password || !username) {
       return res.sendStatus(400);
     }
