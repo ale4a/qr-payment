@@ -29,8 +29,8 @@ server.listen(8080, () => {
 const MONGO_URL =
   "mongodb+srv://alejandro:IJlUIc7wfWduqqbc@cluster0.oqowx7o.mongodb.net/?retryWrites=true&w=majority"; // DB URI
 
-mongoose.Promise = Promise;
-mongoose.connect(MONGO_URL);
-mongoose.connection.on("error", (error: Error) => console.log(error));
+// mongoose.Promise = Promise;
+// mongoose.connect(MONGO_URL);
+// mongoose.connection.on("error", (error: Error) => console.log(error));
 
 app.use("/", router());
