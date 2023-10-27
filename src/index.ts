@@ -5,22 +5,19 @@ import cookieParser from "cookie-parser";
 import compression from "compression";
 import cors from "cors";
 
+import * as path from "path";
+
 import router from "./router";
 import mongoose from "mongoose";
-import { getToken } from "./controllers/payment";
 
 const app = express();
-
 app.use(
   cors({
     credentials: true,
   })
 );
 
-// (async () => {
-//   const token = await getToken();
-//   app.locals.token = token;
-// })();
+app.use("/img", express.static(path.join(path.join(__dirname, ".."), "img")));
 
 app.use(compression());
 app.use(cookieParser());

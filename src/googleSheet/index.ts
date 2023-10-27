@@ -5,6 +5,7 @@ const { google } = require("googleapis");
 
 const TOKEN_PATH = path.join(process.cwd(), "token.json");
 const CREDENTIALS_PATH = path.join(process.cwd(), "credentials.json");
+const SPREADSHEETID = "1nhuXeQ1poJiXh9zaUbIqTRco5gd1VEdLX9-JHfWefcY";
 
 /**
  * Reads previously authorized credentials from the save file.
@@ -72,8 +73,8 @@ export async function authorize() {
 async function listSales(auth: any) {
   const sheets = google.sheets({ version: "v4", auth });
   const res = await sheets.spreadsheets.values.get({
-    spreadsheetId: "1ZeyieYJnC_8IJIf_EJdP-Yx3SlgUD6KusHFHB48cAAY",
-    range: "compra!A2:H",
+    spreadsheetId: SPREADSHEETID,
+    range: "Venta!A2:J",
   });
   const rows = res.data.values;
   if (!rows || rows.length === 0) {
@@ -87,10 +88,35 @@ async function listSales(auth: any) {
   });
 }
 
+export async function getFilledRowCount(auth: any) {
+  const sheets = google.sheets({ version: "v4", auth });
+  const spreadsheetId = SPREADSHEETID;
+  const range = "Venta!A:J"; // Rango de la hoja donde deseas contar las filas
+
+  try {
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range,
+    });
+
+    const values = response.data.values;
+
+    if (!values || values.length === 0) {
+      return 0; // No hay datos en la hoja
+    }
+
+    // El número de filas llenadas es igual a la longitud del arreglo de valores
+    return values.length;
+  } catch (error) {
+    console.error("Error al obtener datos de Google Sheets:", error);
+    return -1; // Manejo de error
+  }
+}
+
 export async function appendToNextColumn(auth: any, newRow: any[]) {
   const sheets = google.sheets({ version: "v4", auth });
-  const spreadsheetId = "1ZeyieYJnC_8IJIf_EJdP-Yx3SlgUD6KusHFHB48cAAY";
-  const range = "compra!A:H"; // Rango donde deseas agregar el nuevo valor
+  const spreadsheetId = SPREADSHEETID;
+  const range = "Venta!A:J"; // Rango donde deseas agregar el nuevo valor
 
   const values = [newRow];
 
@@ -126,7 +152,7 @@ authorize().then(listSales).catch(console.error);
 //         scopes: ['https://www.googleapis.com/auth/spreadsheets']
 //     });
 //     const authClient = await auth.getClient();
-//     const spreadsheetId = "1ZeyieYJnC_8IJIf_EJdP-Yx3SlgUD6KusHFHB48cAAY"
+//     const spreadsheetId = SPREADSHEETID;
 
 //     const sheets = google.sheets({ version: "v4", authClient });
 //     const res = await sheets.spreadsheets.values.update({
