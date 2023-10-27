@@ -5,4 +5,5 @@ dist/
 
 config.json
 secrets.json
+credentials.json
 .env

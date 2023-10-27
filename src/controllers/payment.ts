@@ -1,5 +1,6 @@
 import express from "express";
 import { IDataQR, IStatusQR } from "types/payment";
+import { authorize, appendToNextColumn } from "../googleSheet";
 
 export const getQR = async (req: express.Request, res: express.Response) => {
   try {
@@ -72,8 +73,13 @@ export const getQR = async (req: express.Request, res: express.Response) => {
 export const statusQR = async (req: express.Request, res: express.Response) => {
   try {
     const { qrId } = req.params;
-
-    if (!qrId) {
+    const { idProduct, phone, quantity, amount } = req.body;
+    /*
+        gloss: payment description
+        amount: amount of payment
+        addtionalData: data for identifier the qr {name, ci}
+    */
+    if (!idProduct || !phone || !quantity || !amount || !qrId) {
       return res.sendStatus(400).end();
     }
 
@@ -99,7 +105,27 @@ export const statusQR = async (req: express.Request, res: express.Response) => {
 
     const dataQR: IStatusQR = await response.json();
     const { statusId, success, message, expirationDate } = dataQR;
+    // 1=No Usado
+    // 2= Usado
+    // 3=Expirado
+    // 4=Con error
+
     if (success) {
+      if (statusId === 1) {
+        const newRow = [
+          "1",
+          idProduct,
+          phone,
+          "27-10-2023",
+          quantity,
+          amount,
+          qrId,
+          "pendient",
+        ];
+        authorize()
+          .then((auth) => appendToNextColumn(auth, newRow))
+          .catch(console.error);
+      }
       const responseQR = {
         success: true,
         data: {
